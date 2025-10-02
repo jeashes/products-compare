@@ -23,6 +23,8 @@ return new class extends Migration
                 $table->json('key_features')->nullable();
                 $table->tinyInteger('trending_order')->unique()->nullable();
                 $table->timestamps();
+
+                $table->foreign('category_id')->references('id')->on('categories')->cascadeOnDelete();
             });
         }
     }
