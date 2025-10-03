@@ -17,10 +17,11 @@ Route::apiResource('categories', CategoryController::class);
 Route::get('/top10Products', [ProductController::class, 'top10'])->name('products.top10');
 
 Route::prefix('compare')
+    ->name('compare.')
     ->middleware([StartSession::class])
     ->group(function() {
-        Route::get('/', [CompareController::class, 'index']);
-        Route::post('add', [CompareController::class, 'add']);
-        Route::delete('{id}', [CompareController::class, 'remove']);
-        Route::delete('clear', [CompareController::class, 'clear']);
+        Route::get('/', [CompareController::class, 'index'])->name('get');
+        Route::post('add', [CompareController::class, 'add'])->name('add');
+        Route::delete('{id}', [CompareController::class, 'remove'])->name('remove');
+        Route::delete('clear', [CompareController::class, 'clear'])->name('clear');
     });
