@@ -49,10 +49,14 @@ class IndexTest extends TestCase
                     'updated_at',
                 ],
             ],
+            'links',
+            'meta'
         ]);
 
         $response->assertJson(fn (AssertableJson $json) =>
             $json->has('data', 3)
+                ->has('links')
+                ->has('meta')
                 ->has('data.0', fn (AssertableJson $item) =>
                     $item->whereType('id', 'integer')
                         ->whereType('category_id', 'integer')
