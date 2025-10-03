@@ -11,7 +11,6 @@ class DestroyTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
     public function test_delete_product(): void
     {
         $category = Category::factory()->create();
@@ -31,7 +30,6 @@ class DestroyTest extends TestCase
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
 
-    /** @test */
     public function test_delete_product_that_does_not_exist(): void
     {
         $this->deleteJson(route('products.destroy', 999999))
