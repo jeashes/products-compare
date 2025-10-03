@@ -5,13 +5,11 @@ namespace App\Repository;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductRepository
 {
-    /**
-     * @return Collection<int,Product>
-     */
-    public function getByCategory(?string $categorySlug = null, ?int $limit): Collection
+    public function getByCategory(?string $categorySlug = null, ?int $limit): LengthAwarePaginator
     {
         return Product::query()
             ->when($categorySlug, function (Builder $query) use ($categorySlug) {
@@ -19,10 +17,8 @@ class ProductRepository
                     $c->where('slug', $categorySlug);
                 });
             })
-            ->when($limit, function (Builder $query) use ($limit) {
-                $query->limit($limit);
-            })
-            ->get();
+            ->paginate($limit)
+            ->withQueryString();;
     }
 
     /**
