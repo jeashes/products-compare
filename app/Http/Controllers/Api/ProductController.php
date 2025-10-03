@@ -23,7 +23,11 @@ class ProductController extends Controller
               'category_id' => 'nullable|integer|exists:categories,id'
         ])['category_id'] ?? null;
 
-        $products = $this->repository->getByCategory($categoryId);
+        $limit = $request->validate([
+            'limit' => 'nullable|integer|min:1|max:100',
+        ])['limit'] ?? 25;
+
+        $products = $this->repository->getByCategory($categoryId, $limit);
 
         return ProductResource::collection($products);
     }
