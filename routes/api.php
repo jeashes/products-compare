@@ -13,7 +13,7 @@ Route::get('/user', function (Request $request) {
 Route::apiResource('products', ProductController::class);
 Route::apiResource('categories', CategoryController::class);
 
-Route::get('/top10', [ProductController::class, 'top10'])->name('products.top10');
+Route::get('/top10Products', [ProductController::class, 'top10'])->name('products.top10');
 
 Route::prefix('compare')->group(function() {
     Route::get('/', [CompareController::class, 'index']);

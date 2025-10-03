@@ -3,13 +3,22 @@
 namespace App\Repository;
 
 use App\Models\Category;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class CategoryRepository
 {
-    public function get(int $limit = 20): LengthAwarePaginator
+    /**
+     * @return Collection<int,Category>
+     */
+    public function get(?int $limit = null): Collection
     {
-        return Category::query()->orderBy('id')->paginate($limit);
+        return Category::query()
+            ->when($limit, function (Builder $query) use ($limit) {
+                $query->limit($limit);
+            })
+            ->orderBy('id')
+            ->get();
     }
 
     /**

@@ -5,18 +5,22 @@ namespace App\Repository;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductRepository
 {
-    public function getByCategory(?int $categoryId, int $limit = 20): LengthAwarePaginator
+    /**
+     * @return Collection<int,Product>
+     */
+    public function getByCategory(?int $categoryId, ?int $limit = 20): Collection
     {
       return Product::query()
-          ->when($categoryId, function (Builder $query) use ($categoryId) {
-              $query->where('category_id', $categoryId);
-          })
-          ->paginate($limit);
+            ->when($categoryId, function (Builder $query) use ($categoryId) {
+                $query->where('category_id', $categoryId);
+            })
+            ->when($limit, function (Builder $query) use ($limit) {
+                $query->limit($limit);
+            })
+            ->get();
     }
 
     /**
@@ -44,7 +48,7 @@ class ProductRepository
     }
 
     /**
-     * @return Collection<int,Model>
+     * @return Collection<int,Product>
      */
     public function getTop(int $limit = 10): Collection
     {
