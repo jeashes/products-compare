@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
+use App\Models\Product;
 use Symfony\Component\HttpFoundation\Response;
 
 class CompareController extends Controller
@@ -22,10 +24,7 @@ class CompareController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $ids = collect($request->session()->get(self::SESSION_KEY, []))
-            ->unique()
-            ->take(self::MAX_ITEMS)
-            ->values();
+        $ids = $this->validIds($request);
 
         $products = $this->productRepository->getByIds($ids->all());
 
@@ -44,7 +43,7 @@ class CompareController extends Controller
             'product_id' => ['required', 'integer', 'exists:products,id'],
         ]);
 
-        $ids = collect($request->session()->get(self::SESSION_KEY, []));
+        $ids = $this->validIds($request);
 
         if ($ids->contains($data['product_id'])) {
             $request->session()->put(self::SESSION_KEY, $ids->values()->all());
@@ -80,5 +79,26 @@ class CompareController extends Controller
         $request->session()->forget(self::SESSION_KEY);
 
         return response()->noContent();
+    }
+
+    private function validIds(Request $request): Collection
+    {
+        $ids = collect($request->session()->get(self::SESSION_KEY, []))
+            ->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $existing = Product::query()
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->values();
+
+        if ($existing->count() !== $ids->count()) {
+            $request->session()->put(self::SESSION_KEY, $existing->all());
+        }
+
+        return $existing;
     }
 }
