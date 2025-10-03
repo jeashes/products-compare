@@ -50,11 +50,12 @@ class IndexTest extends TestCase
                 ],
             ],
             'links',
-            'meta',
+            'meta'
         ]);
+
         $response->assertJson(fn (AssertableJson $json) =>
             $json->has('data', 3)
-                ->has('links')  
+                ->has('links')
                 ->has('meta')
                 ->has('data.0', fn (AssertableJson $item) =>
                     $item->whereType('id', 'integer')

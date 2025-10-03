@@ -71,7 +71,7 @@ function renderCategories(categories, activeSlug){
   if (!wrap) return;
 
   wrap.innerHTML = categories.map(c=>{
-    const href = `listing.html?category=${encodeURIComponent(c.slug)}`;
+    const href = `/listing?category=${encodeURIComponent(c.slug)}`;
     const active = String(activeSlug || '') === String(c.slug);
     return `
       <div class="filter-item">
@@ -158,7 +158,7 @@ function renderPagination(meta){
   function pageUrl(page){
     const params = new URLSearchParams(location.search);
     params.set('page', page);
-    return `listing.html?${params.toString()}`;
+    return `/listing?${params.toString()}`;
   }
 
   p.innerHTML = `

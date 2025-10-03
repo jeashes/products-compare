@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/" />
   <title>BRAND — Compare</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -11,9 +12,9 @@
   <div class="container header-inner">
     <div class="brand">BRAND</div>
     <nav class="nav">
-      <a href="index.html" class="nav-link">Home</a>
-      <a href="listing.html" class="nav-link">Products</a>
-      <a href="compare.html" class="nav-link active">
+      <a href="/home" class="nav-link">Home</a>
+      <a href="/listing" class="nav-link">Products</a>
+      <a href="/compare" class="nav-link active">
         Compare <span id="compare-count" class="badge">0</span>
       </a>
     </nav>
@@ -32,13 +33,13 @@
     <div id="compare-empty" class="empty hidden">
       <h3>No products to compare</h3>
       <p class="muted">Pick 2–3 products on the listing page and come back here.</p>
-      <a class="btn" href="listing.html">Browse products</a>
+      <a class="btn" href="/listing">Browse products</a>
     </div>
 
     <div id="compare-one" class="empty hidden">
       <h3>One product selected</h3>
       <p class="muted">Add one more to start comparison (minimum is 2).</p>
-      <a class="btn" href="listing.html">Add another</a>
+      <a class="btn" href="/listing">Add another</a>
     </div>
 
     <div id="compare-wrapper" class="compare-wrapper hidden" aria-live="polite">
@@ -58,9 +59,9 @@
   <div class="container footer-inner">
     <div>© <span id="year"></span> BRAND</div>
     <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="listing.html">Products</a>
-      <a href="compare.html">Compare</a>
+      <a href="/home">Home</a>
+      <a href="/listing">Products</a>
+      <a href="/compare">Compare</a>
     </div>
   </div>
 </footer>

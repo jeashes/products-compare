@@ -61,14 +61,14 @@ function renderCategories(list) {
   if (!list.length) { grid.innerHTML = '<p class="muted">No categories.</p>'; return; }
 
   grid.innerHTML = list.map(c => {
-    const href = `listing.html?category=${encodeURIComponent(c.slug)}`;
+    const href = `/listing?category=${encodeURIComponent(c.slug)}`;
     return `
       <article class="card category-card">
         <a class="tile" href="${href}" style="text-decoration:none;color:inherit;">
           <h3>${c.name}</h3>
           <div class="pills">
             <a class="pill" href="${href}">Explore →</a>
-            <a class="pill" href="compare.html">Compare →</a>
+            <a class="pill" href="/compare">Compare →</a>
           </div>
         </a>
       </article>

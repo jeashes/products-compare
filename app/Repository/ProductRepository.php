@@ -4,14 +4,13 @@ namespace App\Repository;
 
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductRepository
 {
-    /**
-     * @return Collection<int,Product>
-     */
-    public function getByCategory(?string $categorySlug = null, ?int $limit): Collection
+    public function getByCategory(?string $categorySlug = null, ?int $limit): LengthAwarePaginator
     {
         return Product::query()
             ->when($categorySlug, function (Builder $query) use ($categorySlug) {
@@ -19,10 +18,8 @@ class ProductRepository
                     $c->where('slug', $categorySlug);
                 });
             })
-            ->when($limit, function (Builder $query) use ($limit) {
-                $query->limit($limit);
-            })
-            ->get();
+            ->paginate($limit)
+            ->withQueryString();;
     }
 
     /**
@@ -50,9 +47,9 @@ class ProductRepository
     }
 
     /**
-     * @return Collection<int,Product>
+     * @return EloquentCollection<int,Product>
      */
-    public function getTop(int $limit = 10): Collection
+    public function getTop(int $limit = 10): EloquentCollection
     {
         return Product::query()
             ->whereNotNull('trending_order')
@@ -68,12 +65,29 @@ class ProductRepository
 
     /**
      * @param array<int,int> $ids
-     * @return Collection<int,Product>
+     * @return EloquentCollection<int,Product>
      */
-    public function getByIds(array $ids): Collection
+    public function getByIds(array $ids): EloquentCollection
     {
         return Product::query()
             ->whereIn('id', $ids)
             ->get();
+    }
+
+    /**
+     * @param array<int,int> $ids
+     * @return Collection<int,int>
+     */
+    public function getIdsByIds(array $ids): Collection
+    {
+        return Product::query()
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->values();
+    }
+
+    public function isProductExists(int $id): bool
+    {
+        return Product::query()->where('id', $id)->exists();
     }
 }
