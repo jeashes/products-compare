@@ -65,7 +65,6 @@ function renderTable(items){
           <div class="rating">${ratingStars(p.rating)}</div>
           <div class="actions">
             <button class="btn" data-remove="${p.id}">Remove</button>
-            <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_id)}&focus=${encodeURIComponent(p.id)}">Details</a>
           </div>
         </div>
       `).join('')}

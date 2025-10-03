@@ -9,6 +9,7 @@ const API = {
   },
   compareList: () => `/api/compare`,
   compareAdd: () => `/api/compare/add`,
+  compareRemove: (id) => `/api/compare/remove/${encodeURIComponent(id)}`,
 };
 
 const CompareAPI = {
@@ -31,6 +32,11 @@ const CompareAPI = {
     }
     const json = await r.json();
     return Array.isArray(json?.data) ? json.data : [];
+  },
+  async remove(id){
+    const r = await fetch(API.compareRemove(id), { method:'DELETE', headers:{ 'Accept':'application/json' }});
+    if (!r.ok && r.status !== 204) throw new Error(`HTTP ${r.status}`);
+    return true;
   },
 };
 
@@ -97,31 +103,45 @@ function renderProducts(payload, chosen = new Set(), currentCategorySlug = null)
     return;
   }
 
-  grid.innerHTML = data.map(p => `
-    <article class="card product-card">
-      <div class="img-wrap"><img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy"></div>
-      <h4 title="${escapeHtml(p.name)}">${p.name}</h4>
-      <div class="price">€${Number(p.price).toFixed(2)}</div>
-      <div class="rating">${ratingStars(p.rating)}</div>
-      <div class="actions">
-        <button class="btn" data-compare-add="${p.id}" ${chosen.has(p.id)?'disabled':''}>
-          ${chosen.has(p.id)?'Added':'Add to compare'}
-        </button>
-        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(currentCategorySlug ?? '')}&focus=${encodeURIComponent(p.id)}">Details</a>
-      </div>
-    </article>
-  `).join('');
+  grid.innerHTML = data.map(p => {
+    const isChosen = chosen.has(p.id);
+    return `
+      <article class="card product-card">
+        <div class="img-wrap"><img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy"></div>
+        <h4 title="${escapeHtml(p.name)}">${p.name}</h4>
+        <div class="price">€${Number(p.price).toFixed(2)}</div>
+        <div class="rating">${ratingStars(p.rating)}</div>
+        <div class="actions">
+          <button class="btn" data-compare-add="${p.id}" ${isChosen?'style="display:none"':''}>Add to compare</button>
+          <button class="btn btn-ghost" data-compare-remove="${p.id}" ${isChosen?'':'style="display:none"'}>Remove</button>
+        </div>
+      </article>
+    `;
+  }).join('');
 
   grid.querySelectorAll('[data-compare-add]').forEach(btn=>{
     const id = Number(btn.getAttribute('data-compare-add'));
     btn.addEventListener('click', async ()=>{
       try{
         await CompareAPI.add(id);
-        btn.disabled = true; btn.textContent = 'Added';
+        btn.style.display = 'none';
+        const rm = grid.querySelector(`[data-compare-remove="${id}"]`);
+        if (rm) rm.style.display = '';
         updateCompareBadgeFromAPI();
-      }catch(e){
-        alert(e.message || 'Failed to add to compare');
-      }
+      }catch(e){ alert(e.message || 'Failed to add to compare'); }
+    });
+  });
+
+  grid.querySelectorAll('[data-compare-remove]').forEach(btn=>{
+    const id = Number(btn.getAttribute('data-compare-remove'));
+    btn.addEventListener('click', async ()=>{
+      try{
+        await CompareAPI.remove(id);
+        btn.style.display = 'none';
+        const add = grid.querySelector(`[data-compare-add="${id}"]`);
+        if (add) add.style.display = '';
+        updateCompareBadgeFromAPI();
+      }catch{ alert('Failed to remove from compare'); }
     });
   });
 
