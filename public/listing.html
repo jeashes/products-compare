@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BRAND — Products</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="brand">BRAND</div>
+    <nav class="nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="listing.html" class="nav-link active">Products</a>
+      <a href="compare.html" class="nav-link">
+        Compare <span id="compare-count" class="badge">0</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="section">
+    <div class="section-head">
+      <h2 id="listing-title">All Products</h2>
+      <div class="section-actions">
+        <a id="clear-filter" class="btn btn-ghost" href="listing.html" style="display:none">Clear filter</a>
+      </div>
+    </div>
+
+    <div class="layout-listing">
+      <aside class="sidebar" aria-label="Categories filter">
+        <div class="filter-card card">
+          <div class="filter-head">Categories</div>
+          <nav id="categories-list" class="filter-list" aria-live="polite">
+            <div class="skeleton cat-line"></div>
+            <div class="skeleton cat-line"></div>
+            <div class="skeleton cat-line"></div>
+            <div class="skeleton cat-line"></div>
+          </nav>
+        </div>
+      </aside>
+
+      <section class="listing-area">
+        <div id="products-grid" class="grid products-grid" aria-live="polite">
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+        </div>
+
+        <div id="pagination" class="pagination"></div>
+      </section>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>© <span id="year"></span> BRAND</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="listing.html">Products</a>
+      <a href="compare.html">Compare</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/listing.js" defer></script>
+</body>
+</html>

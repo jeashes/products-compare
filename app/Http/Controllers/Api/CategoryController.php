@@ -18,7 +18,7 @@ class CategoryController extends Controller
     {
         $limit = $request->validate([
             'limit' => 'nullable|integer|min:1|max:100',
-        ])['limit'];
+        ])['limit'] ?? null;
         
         $categories = $this->repository->get($limit);
 

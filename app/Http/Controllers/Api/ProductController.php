@@ -25,7 +25,7 @@ class ProductController extends Controller
 
         $limit = $request->validate([
             'limit' => 'nullable|integer|min:1|max:100',
-        ])['limit'] ?? 25;
+        ])['limit'] ?? 15;
 
         $products = $this->repository->getByCategory($categoryId, $limit);
 
