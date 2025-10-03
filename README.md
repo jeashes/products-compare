@@ -96,3 +96,9 @@ Your application will be available at: **http://localhost:8000**
 ## 🎉 You're All Set!
 
 Open your browser and navigate to [http://localhost:8000](http://localhost:8000) to see your application running.
+
+## ⚠️ Known Issues
+
+**Known issue:** On the very first *“Add to compare”* followed by an immediate navigation to */compare*, the compare list may appear *empty*.  
+This is a race condition between the session cookie creation (*POST /api/compare/add*) and the page navigation.  
+Subsequent attempts work as expected. 
