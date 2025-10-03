@@ -6,17 +6,34 @@ const API = {
 
 function updateCompareBadge(count){
   const el = document.getElementById('compare-count');
-  if (el) el.textContent = count ?? 0;
+
+  if (el) {
+    el.textContent = count ?? 0;
+  }
 }
 
 async function safe(method, url){
-  const r = await fetch(url, { method, headers: { 'Accept': 'application/json' }});
-  if (!r.ok && r.status !== 204) throw new Error(`HTTP ${r.status}`);
+  const r = await fetch(
+    url, { 
+      method, 
+      headers: { 
+        'Accept': 'application/json' 
+      }
+    }
+  );
+
+  if (!r.ok && r.status !== 204) {
+    throw new Error(`HTTP ${r.status}`);
+  }
+
   return r.status === 204 ? null : r.json();
 }
 
 function ratingStars(val){
-  if (val == null) return '—';
+  if (val == null) {
+    return '—';
+  }
+
   const full = Math.round(Number(val) * 2) / 2;
   return `${full.toFixed(1)} ★`;
 }
@@ -73,8 +90,11 @@ function renderTable(items){
 
   const toList = (arr, prefix='') => {
     const a = Array.isArray(arr) ? arr : [];
-    if (!a.length) return '—';
-    return `<ul class="compare-list">${a.map(x=>`<li>${prefix}${esc(x)}</li>`).join('')}</ul>`;
+
+    if (!a.length) {
+      return '—';
+    }
+    return `<ul class="compare-list">${a.map(x => `<li>${prefix}${esc(x)}</li>`).join('')}</ul>`;
   };
 
   const rows = [
@@ -93,11 +113,15 @@ function renderTable(items){
 
   grid.innerHTML = headRow + rows;
 
-  grid.querySelectorAll('[data-remove]').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
+  grid.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-remove');
-      try { await safe('DELETE', API.remove(id)); await load(); }
-      catch { alert('Failed to remove item.'); }
+      try { 
+        await safe('DELETE', API.remove(id)); 
+        await load(); 
+      } catch { 
+        alert('Failed to remove item.'); 
+      }
     });
   });
 
@@ -114,8 +138,14 @@ async function load(){
 
     updateCompareBadge(items.length);
 
-    if (items.length === 0) return renderEmpty();
-    if (items.length === 1) return renderOne();
+    if (items.length === 0) {
+      return renderEmpty();
+    }
+
+    if (items.length === 1) {
+      return renderOne();
+    }
+
     return renderTable(items.slice(0, 3));
   }catch(e){
     document.getElementById('compare-skeleton').classList.add('hidden');
@@ -124,12 +154,16 @@ async function load(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', () => {
   load();
 
   const clearBtn = document.getElementById('clear-all');
-  clearBtn.addEventListener('click', async ()=>{
-    try{ await safe('DELETE', API.clear()); await load(); }
-    catch{ alert('Failed to clear comparison.'); }
+  clearBtn.addEventListener('click', async () => {
+    try { 
+      await safe('DELETE', API.clear()); 
+      await load(); 
+    } catch { 
+      alert('Failed to clear comparison.'); 
+    }
   });
 });

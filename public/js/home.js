@@ -8,31 +8,80 @@ const API = {
 
 const CompareAPI = {
   async list() {
-    const r = await fetch(API.compareList(), { headers: { 'Accept': 'application/json' } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const json = await r.json();
-    return Array.isArray(json?.data) ? json.data : [];
-  },
-  async add(id) {
-    const r = await fetch(API.compareAdd(), {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: Number(id) }),
-      keepalive: true,
-      credentials: 'same-origin',
-    });
+    const r = await fetch(
+      API.compareList(), { 
+        headers: { 
+          'Accept': 'application/json' 
+        }
+      }
+    );
+
     if (!r.ok) {
-      let msg = `HTTP ${r.status}`;
-      try { const body = await r.json(); if (body?.message) msg = body.message; } catch {}
-      throw new Error(msg);
+      throw new Error(`HTTP ${r.status}`);
     }
     const json = await r.json();
     return Array.isArray(json?.data) ? json.data : [];
   },
+
+  async add(id) {
+    const r = await fetch(API.compareAdd(), {
+      method: 'POST',
+      headers: { 
+        'Accept': 'application/json', 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({ product_id: Number(id) }),
+      keepalive: true,
+      credentials: 'same-origin',
+    });
+
+    if (!r.ok) {
+      let msg = `HTTP ${r.status}`;
+
+      try { 
+        const body = await r.json(); 
+
+        if (body?.message) {
+          msg = body.message;
+        } 
+      } catch {
+        throw new Error(msg);
+      }
+    }
+
+    const json = await r.json();
+    return Array.isArray(json?.data) ? json.data : [];
+  },
+
   async remove(id) {
-    const r = await fetch(API.compareRemove(id), { method:'DELETE', headers:{ 'Accept':'application/json' }});
-    if (!r.ok && r.status !== 204) throw new Error(`HTTP ${r.status}`);
+    const r = await fetch(
+      API.compareRemove(id), { 
+        method:'DELETE', 
+        headers:{ 
+          'Accept': 'application/json' 
+        },
+        credentials: 'same-origin'
+      }
+    );
+  
+    if (!r.ok && r.status !== 204) {
+      throw new Error(`HTTP ${r.status}`);
+    }
+
     return true;
+  }
+};
+
+let compareAddingInFlight = 0;
+
+const _origAdd = CompareAPI.add.bind(CompareAPI);
+
+CompareAPI.add = async (id) => {
+  compareAddingInFlight++;
+  try { 
+    return await _origAdd(id); 
+  } finally { 
+    compareAddingInFlight--; 
   }
 };
 
@@ -40,30 +89,56 @@ async function updateCompareBadgeFromAPI() {
   try {
     const list = await CompareAPI.list();
     const el = document.getElementById('compare-count');
-    if (el) el.textContent = list.length;
+
+    if (el) {
+      el.textContent = list.length;
+    }
   } catch {}
 }
 
 async function safeGet(url) {
-  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const res = await fetch(
+    url, { 
+      headers: { 
+        'Accept': 'application/json' 
+      } 
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
   return res.json();
 }
 
 function ratingStars(val) {
-  if (val == null) return '—';
+  if (val == null) {
+    return '—';
+  }
+
   const full = Math.round(Number(val) * 2) / 2;
+
   return `${full.toFixed(1)} ★`;
 }
 
 function renderCategories(list) {
   const grid = document.getElementById('categories-grid');
+
   if (!grid) return;
-  if (!Array.isArray(list)) list = list?.data ?? [];
-  if (!list.length) { grid.innerHTML = '<p class="muted">No categories.</p>'; return; }
+
+  if (!Array.isArray(list)) {
+    list = list?.data ?? [];
+  }
+
+  if (!list.length) { 
+    grid.innerHTML = '<p class="muted">No categories.</p>'; 
+    return; 
+  }
 
   grid.innerHTML = list.map(c => {
     const href = `/listing?category=${encodeURIComponent(c.slug)}`;
+
     return `
       <article class="card category-card">
         <a class="tile" href="${href}" style="text-decoration:none;color:inherit;">
@@ -81,8 +156,15 @@ function renderCategories(list) {
 function renderTop10(list, chosen = new Set()) {
   const grid = document.getElementById('top10-grid');
   if (!grid) return;
-  if (!Array.isArray(list)) list = list?.data ?? [];
-  if (!list.length) { grid.innerHTML = '<p class="muted">No products in Top 10.</p>'; return; }
+
+  if (!Array.isArray(list)) {
+    list = list?.data ?? [];
+  }
+
+  if (!list.length) { 
+    grid.innerHTML = '<p class="muted">No products in Top 10.</p>'; 
+    return; 
+  }
 
   grid.innerHTML = list.map(p => {
     const isChosen = chosen.has(p.id);
@@ -104,14 +186,20 @@ function renderTop10(list, chosen = new Set()) {
 
   grid.querySelectorAll('[data-compare-add]').forEach(btn => {
     const id = Number(btn.getAttribute('data-compare-add'));
+
     btn.addEventListener('click', async () => {
       try {
         await CompareAPI.add(id);
         btn.style.display = 'none';
         const rm = grid.querySelector(`[data-compare-remove="${id}"]`);
-        if (rm) rm.style.display = '';
+
+        if (rm) {
+          rm.style.display = '';
+        }
         updateCompareBadgeFromAPI();
-      } catch (e) { alert(e.message || 'Failed to add to compare'); }
+      } catch (e) { 
+        alert(e.message || 'Failed to add to compare'); 
+      }
     });
   });
 
@@ -122,9 +210,34 @@ function renderTop10(list, chosen = new Set()) {
         await CompareAPI.remove(id);
         btn.style.display = 'none';
         const add = grid.querySelector(`[data-compare-add="${id}"]`);
-        if (add) add.style.display = '';
+
+        if (add) {
+          add.style.display = '';
+        }
+
         updateCompareBadgeFromAPI();
-      } catch { alert('Failed to remove from compare'); }
+      } catch { 
+        alert('Failed to remove from compare'); 
+      }
+    });
+  });
+}
+
+function guardCompareLink() {
+  document.querySelectorAll('a[href="/compare"], a[href="compare"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      if (compareAddingInFlight > 0) {
+        e.preventDefault();
+        const href = a.getAttribute('href') || '/compare';
+        const tick = () => {
+          if (compareAddingInFlight === 0) {
+            location.href = href;
+          } else {
+            setTimeout(tick, 120);
+          }
+        };
+        tick();
+      }
     });
   });
 }
@@ -174,6 +287,8 @@ async function boot() {
       }
     });
   }
+
+  guardCompareLink();
 }
 
 document.addEventListener('DOMContentLoaded', boot);

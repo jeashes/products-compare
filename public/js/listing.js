@@ -3,8 +3,15 @@ const API = {
   products: ({ categorySlug, page = 1, perPage = 15 }) => {
     const params = new URLSearchParams();
     params.set('per_page', perPage);
-    if (categorySlug) params.set('category_slug', categorySlug);
-    if (page) params.set('page', page);
+
+    if (categorySlug) {
+      params.set('category_slug', categorySlug);
+    }
+
+    if (page) {
+      params.set('page', page);
+    }
+
     return `/api/products?${params.toString()}`;
   },
   compareList: () => `/api/compare`,
@@ -14,30 +21,66 @@ const API = {
 
 const CompareAPI = {
   async list() {
-    const r = await fetch(API.compareList(), { headers: { 'Accept': 'application/json' } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const r = await fetch(
+      API.compareList(), { 
+        headers: { 
+          'Accept': 'application/json' 
+        } 
+      }
+    );
+
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}`);
+    }
+
     const json = await r.json();
     return Array.isArray(json?.data) ? json.data : [];
   },
   async add(id) {
-    const r = await fetch(API.compareAdd(), {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: Number(id) }),
-      keepalive: true,
-      credentials: 'same-origin',
-    });
+    const r = await fetch(
+      API.compareAdd(), {
+        method: 'POST',
+        headers: { 
+          'Accept': 'application/json', 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ product_id: Number(id) }),
+        keepalive: true,
+        credentials: 'same-origin',
+      }
+    );
+
     if (!r.ok) {
       let msg = `HTTP ${r.status}`;
-      try { const body = await r.json(); if (body?.message) msg = body.message; } catch {}
+      try { 
+        const body = await r.json(); 
+        if (body?.message) {
+          msg = body.message;
+        } 
+      } catch {}
+
       throw new Error(msg);
     }
+
     const json = await r.json();
     return Array.isArray(json?.data) ? json.data : [];
   },
+
   async remove(id){
-    const r = await fetch(API.compareRemove(id), { method:'DELETE', headers:{ 'Accept':'application/json' }});
-    if (!r.ok && r.status !== 204) throw new Error(`HTTP ${r.status}`);
+    const r = await fetch(
+      API.compareRemove(id), { 
+        method:'DELETE', 
+        headers:{ 
+          'Accept':'application/json' 
+        },
+        credentials:'same-origin',
+      }
+    );
+
+    if (!r.ok && r.status !== 204) {
+      throw new Error(`HTTP ${r.status}`);
+    }
+
     return true;
   },
 };
@@ -46,7 +89,10 @@ async function updateCompareBadgeFromAPI(){
   try {
     const list = await CompareAPI.list();
     const el = document.getElementById('compare-count');
-    if (el) el.textContent = list.length;
+
+    if (el) {
+      el.textContent = list.length;
+    }
   } catch {}
 }
 
@@ -56,23 +102,38 @@ function qs(name, dflt = null){
 }
 
 async function safeGet(url){
-  const r = await fetch(url, { headers: { 'Accept': 'application/json' }});
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const r = await fetch(
+    url, { 
+      headers: { 
+        'Accept': 'application/json' 
+      }
+    }
+  );
+
+  if (!r.ok) {
+    throw new Error(`HTTP ${r.status}`);
+  }
   return r.json();
 }
 
 function ratingStars(val){
-  if (val == null) return '—';
+  if (val == null) {
+    return '—';
+  }
+
   const full = Math.round(Number(val) * 2) / 2;
   return `${full.toFixed(1)} ★`;
 }
 
 function renderCategories(categories, activeSlug){
   const wrap = document.getElementById('categories-list');
-  if (!Array.isArray(categories)) categories = categories?.data ?? [];
+  if (!Array.isArray(categories)) {
+    categories = categories?.data ?? [];
+  }
+
   if (!wrap) return;
 
-  wrap.innerHTML = categories.map(c=>{
+  wrap.innerHTML = categories.map(c => {
     const href = `/listing?category=${encodeURIComponent(c.slug)}`;
     const active = String(activeSlug || '') === String(c.slug);
     return `
@@ -85,7 +146,9 @@ function renderCategories(categories, activeSlug){
   }).join('');
 
   const clear = document.getElementById('clear-filter');
-  if (clear) clear.style.display = activeSlug ? '' : 'none';
+  if (clear) {
+    clear.style.display = activeSlug ? '' : 'none';
+  }
 
   const title = document.getElementById('listing-title');
   if (title) {
@@ -121,29 +184,40 @@ function renderProducts(payload, chosen = new Set(), currentCategorySlug = null)
     `;
   }).join('');
 
-  grid.querySelectorAll('[data-compare-add]').forEach(btn=>{
+  grid.querySelectorAll('[data-compare-add]').forEach(btn => {
     const id = Number(btn.getAttribute('data-compare-add'));
-    btn.addEventListener('click', async ()=>{
-      try{
+    btn.addEventListener('click', async () => {
+      try {
         await CompareAPI.add(id);
         btn.style.display = 'none';
         const rm = grid.querySelector(`[data-compare-remove="${id}"]`);
-        if (rm) rm.style.display = '';
+
+        if (rm) {
+          rm.style.display = '';
+        }
+
         updateCompareBadgeFromAPI();
-      }catch(e){ alert(e.message || 'Failed to add to compare'); }
+      } catch(e) { 
+        alert(e.message || 'Failed to add to compare'); 
+      }
     });
   });
 
-  grid.querySelectorAll('[data-compare-remove]').forEach(btn=>{
+  grid.querySelectorAll('[data-compare-remove]').forEach(btn => {
     const id = Number(btn.getAttribute('data-compare-remove'));
-    btn.addEventListener('click', async ()=>{
-      try{
+    btn.addEventListener('click', async () => {
+      try {
         await CompareAPI.remove(id);
         btn.style.display = 'none';
         const add = grid.querySelector(`[data-compare-add="${id}"]`);
-        if (add) add.style.display = '';
+        if (add) {
+          add.style.display = '';
+        }
+
         updateCompareBadgeFromAPI();
-      }catch{ alert('Failed to remove from compare'); }
+      } catch { 
+        alert('Failed to remove from compare'); 
+      }
     });
   });
 
