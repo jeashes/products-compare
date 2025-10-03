@@ -3,38 +3,25 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\ProductResource;
-use App\Repository\ProductRepository;
+use App\Services\Session\CompareService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Collection;
-use App\Models\Product;
 use Symfony\Component\HttpFoundation\Response;
 
 class CompareController extends Controller
 {
-    private const SESSION_KEY = 'compare';
-    private const MAX_ITEMS = 3;
-
     public function __construct(
-        private readonly ProductRepository $productRepository
+        private readonly CompareService $compareService
     ) {
     }
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $ids = $this->validIds($request);
+        $products = $this->compareService->getProducts();
 
-        $products = $this->productRepository->getByIds($ids->all());
-
-        $ordered = $products
-            ->sortBy(function ($product) use ($ids) {
-              return $ids->search($product->id);
-            })
-            ->values();
-
-        return ProductResource::collection($ordered);
+        return ProductResource::collection($products);
     }
 
     public function add(Request $request): AnonymousResourceCollection|JsonResponse
@@ -43,62 +30,28 @@ class CompareController extends Controller
             'product_id' => ['required', 'integer', 'exists:products,id'],
         ]);
 
-        $ids = $this->validIds($request);
+        $result = $this->compareService->add($data['product_id']);
 
-        if ($ids->contains($data['product_id'])) {
-            $request->session()->put(self::SESSION_KEY, $ids->values()->all());
-            return $this->index($request);
-        }
-
-        if ($ids->count() >= self::MAX_ITEMS) {
+        if (!$result['success']) {
             return response()->json([
-                'message' => 'Compare list limit reached (max '.self::MAX_ITEMS.').',
+                'message' => $result['message'],
             ], 422);
         }
 
-        $ids->push($data['product_id']);
-
-        $request->session()->put(self::SESSION_KEY, $ids->unique()->take(self::MAX_ITEMS)->values()->all());
-
-        return $this->index($request);
+        return ProductResource::collection($result['products']);
     }
 
     public function remove(Request $request, int $id): Response
     {
-        $ids = collect($request->session()->get(self::SESSION_KEY, []))
-            ->reject(fn ($v) => (int) $v === $id)
-            ->values();
-
-        $request->session()->put(self::SESSION_KEY, $ids->all());
+        $this->compareService->remove($id);
 
         return response()->noContent();
     }
 
     public function clear(Request $request): Response
     {
-        $request->session()->forget(self::SESSION_KEY);
+        $this->compareService->clear();
 
         return response()->noContent();
-    }
-
-    private function validIds(Request $request): Collection
-    {
-        $ids = collect($request->session()->get(self::SESSION_KEY, []))
-            ->unique()->values();
-
-        if ($ids->isEmpty()) {
-            return collect();
-        }
-
-        $existing = Product::query()
-            ->whereIn('id', $ids)
-            ->pluck('id')
-            ->values();
-
-        if ($existing->count() !== $ids->count()) {
-            $request->session()->put(self::SESSION_KEY, $existing->all());
-        }
-
-        return $existing;
     }
 }
