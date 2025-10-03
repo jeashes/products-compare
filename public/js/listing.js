@@ -184,9 +184,9 @@ function renderProducts(payload, chosen = new Set(), currentCategorySlug = null)
     `;
   }).join('');
 
-  grid.querySelectorAll('[data-compare-add]').forEach(btn=>{
+  grid.querySelectorAll('[data-compare-add]').forEach(btn => {
     const id = Number(btn.getAttribute('data-compare-add'));
-    btn.addEventListener('click', async ()=>{
+    btn.addEventListener('click', async () => {
       try {
         await CompareAPI.add(id);
         btn.style.display = 'none';
@@ -203,9 +203,9 @@ function renderProducts(payload, chosen = new Set(), currentCategorySlug = null)
     });
   });
 
-  grid.querySelectorAll('[data-compare-remove]').forEach(btn=>{
+  grid.querySelectorAll('[data-compare-remove]').forEach(btn => {
     const id = Number(btn.getAttribute('data-compare-remove'));
-    btn.addEventListener('click', async ()=>{
+    btn.addEventListener('click', async () => {
       try {
         await CompareAPI.remove(id);
         btn.style.display = 'none';
