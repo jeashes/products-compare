@@ -7,26 +7,39 @@ const API = {
     if (page) params.set('page', page);
     return `/api/products?${params.toString()}`;
   },
+  compareList: () => `/api/compare`,
+  compareAdd: () => `/api/compare/add`,
 };
 
-const Compare = {
-  storageKey: 'compareIds',
-  get(){ try { return JSON.parse(localStorage.getItem(this.storageKey)||'[]'); } catch { return []; } },
-  set(ids){ localStorage.setItem(this.storageKey, JSON.stringify(ids)); updateCompareBadge(); },
-  add(id){
-    id = Number(id);
-    const ids = this.get();
-    if (ids.includes(id)) return;
-    if (ids.length >= 3) { alert('Compare limit is 3 items.'); return; }
-    ids.push(id); this.set(ids);
-    const btn = document.querySelector(`[data-compare-add="${id}"]`);
-    if (btn) { btn.disabled = true; btn.textContent = 'Added'; }
-  }
+const CompareAPI = {
+  async list() {
+    const r = await fetch(API.compareList(), { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const json = await r.json();
+    return Array.isArray(json?.data) ? json.data : [];
+  },
+  async add(id) {
+    const r = await fetch(API.compareAdd(), {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: Number(id) }),
+    });
+    if (!r.ok) {
+      let msg = `HTTP ${r.status}`;
+      try { const body = await r.json(); if (body?.message) msg = body.message; } catch {}
+      throw new Error(msg);
+    }
+    const json = await r.json();
+    return Array.isArray(json?.data) ? json.data : [];
+  },
 };
 
-function updateCompareBadge(){
-  const el = document.getElementById('compare-count');
-  if (el) el.textContent = Compare.get().length;
+async function updateCompareBadgeFromAPI(){
+  try {
+    const list = await CompareAPI.list();
+    const el = document.getElementById('compare-count');
+    if (el) el.textContent = list.length;
+  } catch {}
 }
 
 function qs(name, dflt = null){
@@ -46,14 +59,14 @@ function ratingStars(val){
   return `${full.toFixed(1)} ★`;
 }
 
-function renderCategories(categories, activeId){
+function renderCategories(categories, activeSlug){
   const wrap = document.getElementById('categories-list');
   if (!Array.isArray(categories)) categories = categories?.data ?? [];
   if (!wrap) return;
 
   wrap.innerHTML = categories.map(c=>{
     const href = `listing.html?category=${encodeURIComponent(c.slug)}`;
-    const active = Number(activeId) === Number(c.slug);
+    const active = String(activeSlug || '') === String(c.slug);
     return `
       <div class="filter-item">
         <a class="filter-link ${active?'active':''}" href="${href}">
@@ -64,15 +77,16 @@ function renderCategories(categories, activeId){
   }).join('');
 
   const clear = document.getElementById('clear-filter');
-  if (clear) clear.style.display = activeId ? '' : 'none';
+  if (clear) clear.style.display = activeSlug ? '' : 'none';
 
   const title = document.getElementById('listing-title');
-  if (title) title.textContent = activeId
-    ? `Products · ${categories.find(x=>Number(x.id)===Number(activeId))?.name ?? ''}`
-    : 'All Products';
+  if (title) {
+    const catName = categories.find(x => String(x.slug) === String(activeSlug))?.name ?? '';
+    title.textContent = activeSlug ? `Products · ${catName}` : 'All Products';
+  }
 }
 
-function renderProducts(payload){
+function renderProducts(payload, chosen = new Set(), currentCategorySlug = null){
   const grid = document.getElementById('products-grid');
   if (!grid) return;
 
@@ -90,26 +104,34 @@ function renderProducts(payload){
       <div class="price">€${Number(p.price).toFixed(2)}</div>
       <div class="rating">${ratingStars(p.rating)}</div>
       <div class="actions">
-        <button class="btn" data-compare-add="${p.id}">Add to compare</button>
-        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_slug)}&focus=${encodeURIComponent(p.slig)}">Details</a>
+        <button class="btn" data-compare-add="${p.id}" ${chosen.has(p.id)?'disabled':''}>
+          ${chosen.has(p.id)?'Added':'Add to compare'}
+        </button>
+        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(currentCategorySlug ?? '')}&focus=${encodeURIComponent(p.id)}">Details</a>
       </div>
     </article>
   `).join('');
 
   grid.querySelectorAll('[data-compare-add]').forEach(btn=>{
     const id = Number(btn.getAttribute('data-compare-add'));
-    if (Compare.get().includes(id)) { btn.disabled = true; btn.textContent = 'Added'; }
-    btn.addEventListener('click', ()=> Compare.add(id));
+    btn.addEventListener('click', async ()=>{
+      try{
+        await CompareAPI.add(id);
+        btn.disabled = true; btn.textContent = 'Added';
+        updateCompareBadgeFromAPI();
+      }catch(e){
+        alert(e.message || 'Failed to add to compare');
+      }
+    });
   });
 
   renderPagination(payload.meta, payload.links);
 }
 
-function renderPagination(meta, links){
+function renderPagination(meta){
   const p = document.getElementById('pagination');
   if (!p || !meta) { if (p) p.innerHTML=''; return; }
 
-  const q = new URLSearchParams(location.search);
   const prevUrl = meta.current_page > 1 ? pageUrl(meta.current_page - 1) : null;
   const nextUrl = meta.current_page < meta.last_page ? pageUrl(meta.current_page + 1) : null;
 
@@ -134,24 +156,28 @@ function escapeHtml(s){
 
 async function boot(){
   document.getElementById('year').textContent = new Date().getFullYear();
-  updateCompareBadge();
 
   const categorySlug = qs('category');
   const page = Number(qs('page', 1)) || 1;
 
   try {
-    const [cats, prods] = await Promise.all([
+    const [cats, prods, selected] = await Promise.all([
       safeGet(API.categories()),
       safeGet(API.products({ categorySlug, page, perPage: 15 })),
+      CompareAPI.list(),
     ]);
 
+    const chosen = new Set(selected.map(p => p.id));
+
     renderCategories(cats.data ?? cats, categorySlug);
-    renderProducts(prods);
+    renderProducts(prods, chosen, categorySlug);
   } catch (e) {
     document.getElementById('categories-list').innerHTML = '<p class="muted">Failed to load categories.</p>';
     document.getElementById('products-grid').innerHTML = '<p class="muted">Failed to load listing.</p>';
     document.getElementById('pagination').innerHTML = '';
   }
+
+  updateCompareBadgeFromAPI();
 }
 
 document.addEventListener('DOMContentLoaded', boot);

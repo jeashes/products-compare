@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BRAND — Compare</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="brand">BRAND</div>
+    <nav class="nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="listing.html" class="nav-link">Products</a>
+      <a href="compare.html" class="nav-link active">
+        Compare <span id="compare-count" class="badge">0</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="section">
+    <div class="section-head">
+      <h2>Comparison</h2>
+      <div class="section-actions">
+        <button id="clear-all" class="btn btn-ghost" style="display:none">Clear all</button>
+      </div>
+    </div>
+
+    <div id="compare-empty" class="empty hidden">
+      <h3>No products to compare</h3>
+      <p class="muted">Pick 2–3 products on the listing page and come back here.</p>
+      <a class="btn" href="listing.html">Browse products</a>
+    </div>
+
+    <div id="compare-one" class="empty hidden">
+      <h3>One product selected</h3>
+      <p class="muted">Add one more to start comparison (minimum is 2).</p>
+      <a class="btn" href="listing.html">Add another</a>
+    </div>
+
+    <div id="compare-wrapper" class="compare-wrapper hidden" aria-live="polite">
+      <div id="compare-grid" class="compare-grid">
+      </div>
+    </div>
+
+    <div id="compare-skeleton" class="grid products-grid">
+      <div class="skeleton product-skeleton"></div>
+      <div class="skeleton product-skeleton"></div>
+      <div class="skeleton product-skeleton"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>© <span id="year"></span> BRAND</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="listing.html">Products</a>
+      <a href="compare.html">Compare</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/compare.js" defer></script>
+</body>
+</html>

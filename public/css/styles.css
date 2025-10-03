@@ -399,3 +399,83 @@ body {
 }
 .page-btn[aria-disabled="true"]{opacity:.5;pointer-events:none}
 .page-info{color:var(--muted);padding:8px 12px}
+
+.hidden{display:none}
+
+.empty{
+  text-align:center;
+  background:linear-gradient(180deg,#0c1328 0%, #0a1024 100%);
+  border:1px solid var(--ring);
+  border-radius:16px;
+  padding:24px;
+  margin-bottom:16px;
+}
+
+.compare-wrapper{
+  overflow-x:auto;
+  border:1px solid var(--ring);
+  border-radius:16px;
+  background:linear-gradient(180deg,#0c1328 0%, #0a1024 100%);
+}
+
+.compare-grid{
+  --label-col: 180px;
+  --cols: 2;
+  display:grid;
+  grid-template-columns: var(--label-col) repeat(var(--cols), minmax(240px, 1fr));
+  gap:12px;
+  padding:14px;
+  min-width: calc(var(--label-col) + (var(--cols) * 260px));
+}
+
+.compare-row{display:contents}
+
+.compare-label{
+  position:sticky; left:0; z-index:2;
+  align-self:start;
+  background:linear-gradient(180deg,#0c1328 0%, #0a1024 100%);
+  border:1px solid var(--ring);
+  border-radius:12px;
+  padding:10px;
+  font-weight:700;
+  color:#d1d5db;
+  min-height:44px;
+  display:flex;align-items:center
+}
+
+.compare-head{
+  border:1px solid var(--ring);
+  border-radius:12px;
+  padding:10px;
+  background:#0b1225;
+}
+.compare-head .img{
+  width:100%; aspect-ratio:16/10; border-radius:10px; overflow:hidden;
+  background:#0a1024; border:1px solid #1f2a44; margin-bottom:8px;
+}
+.compare-head img{width:100%;height:100%;object-fit:cover;display:block}
+.compare-head .name{font-weight:700; margin:6px 0}
+.compare-head .price{font-weight:800}
+.compare-head .rating{color:#fbbf24; font-size:13px}
+.compare-head .actions{display:flex; gap:8px; margin-top:8px}
+.compare-head .actions .btn{flex:1 1 50%}
+
+.compare-cell{
+  border:1px solid var(--ring);
+  border-radius:12px;
+  padding:10px;
+  background:#0b1225;
+  min-height:44px;
+}
+
+.compare-list{margin:0;padding-left:18px}
+.compare-list li{margin:4px 0}
+
+@media (max-width: 768px){
+  .compare-grid{
+    --label-col: 140px;
+    grid-template-columns: var(--label-col) repeat(var(--cols), minmax(220px, 1fr));
+    min-width: calc(var(--label-col) + (var(--cols) * 230px));
+  }
+}
+
