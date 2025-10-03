@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BRAND — Home</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">BRAND</div>
+      <nav class="nav">
+        <a href="index.html" class="nav-link active">Home</a>
+        <a href="listing.html" class="nav-link">Products</a>
+        <a href="compare.html" class="nav-link">
+          Compare <span id="compare-count" class="badge">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1 class="title">Compare and shop the <span class="accent">Top 10</span> best services & products</h1>
+        <p class="subtitle">Pick a category or jump straight to today’s Top 10.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Featured Categories</h2>
+          <div class="section-actions">
+            <button id="reload-categories" class="btn btn-light">Reload</button>
+          </div>
+        </div>
+
+        <div id="categories-grid" class="grid categories-grid" aria-live="polite">
+          <div class="skeleton category-skeleton"></div>
+          <div class="skeleton category-skeleton"></div>
+          <div class="skeleton category-skeleton"></div>
+          <div class="skeleton category-skeleton"></div>
+          <div class="skeleton category-skeleton"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="container">
+        <div class="section-head">
+          <h2>Top 10 Trending</h2>
+          <div class="section-actions">
+            <a href="products.html" class="btn">Explore all products</a>
+          </div>
+        </div>
+
+        <div id="top10-grid" class="grid products-grid" aria-live="polite">
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+          <div class="skeleton product-skeleton"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>© <span id="year"></span> BRAND</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="compare.html">Compare</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/home.js" ></script>
+</body>
+</html>
