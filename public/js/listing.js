@@ -1,9 +1,9 @@
 const API = {
   categories: () => `/api/categories`,
-  products: ({ categoryId, page = 1, perPage = 15 }) => {
+  products: ({ categorySlug, page = 1, perPage = 15 }) => {
     const params = new URLSearchParams();
     params.set('per_page', perPage);
-    if (categoryId) params.set('category_id', categoryId);
+    if (categorySlug) params.set('category_slug', categorySlug);
     if (page) params.set('page', page);
     return `/api/products?${params.toString()}`;
   },
@@ -52,8 +52,8 @@ function renderCategories(categories, activeId){
   if (!wrap) return;
 
   wrap.innerHTML = categories.map(c=>{
-    const href = `listing.html?category=${encodeURIComponent(c.id)}`;
-    const active = Number(activeId) === Number(c.id);
+    const href = `listing.html?category=${encodeURIComponent(c.slug)}`;
+    const active = Number(activeId) === Number(c.slug);
     return `
       <div class="filter-item">
         <a class="filter-link ${active?'active':''}" href="${href}">
@@ -91,7 +91,7 @@ function renderProducts(payload){
       <div class="rating">${ratingStars(p.rating)}</div>
       <div class="actions">
         <button class="btn" data-compare-add="${p.id}">Add to compare</button>
-        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_id)}&focus=${encodeURIComponent(p.id)}">Details</a>
+        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_slug)}&focus=${encodeURIComponent(p.slig)}">Details</a>
       </div>
     </article>
   `).join('');
@@ -136,16 +136,16 @@ async function boot(){
   document.getElementById('year').textContent = new Date().getFullYear();
   updateCompareBadge();
 
-  const categoryId = qs('category');
+  const categorySlug = qs('category');
   const page = Number(qs('page', 1)) || 1;
 
   try {
     const [cats, prods] = await Promise.all([
       safeGet(API.categories()),
-      safeGet(API.products({ categoryId, page, perPage: 15 })),
+      safeGet(API.products({ categorySlug, page, perPage: 15 })),
     ]);
 
-    renderCategories(cats.data ?? cats, categoryId);
+    renderCategories(cats.data ?? cats, categorySlug);
     renderProducts(prods);
   } catch (e) {
     document.getElementById('categories-list').innerHTML = '<p class="muted">Failed to load categories.</p>';

@@ -19,15 +19,15 @@ class ProductController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $categoryId = $request->validate([
-              'category_id' => 'nullable|integer|exists:categories,id'
-        ])['category_id'] ?? null;
+        $categorySlug = $request->validate([
+              'category_slug' => 'nullable|string|exists:categories,slug'
+        ])['category_slug'] ?? null;
 
         $limit = $request->validate([
             'limit' => 'nullable|integer|min:1|max:100',
         ])['limit'] ?? 15;
 
-        $products = $this->repository->getByCategory($categoryId, $limit);
+        $products = $this->repository->getByCategory($categorySlug, $limit);
 
         return ProductResource::collection($products);
     }

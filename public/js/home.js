@@ -51,7 +51,7 @@ function renderCategories(list){
   if (!list.length) { grid.innerHTML = '<p class="muted">No categories.</p>'; return; }
 
   grid.innerHTML = list.map(c => {
-    const href = `listing.html?category=${encodeURIComponent(c.id)}`;
+    const href = `listing.html?category=${encodeURIComponent(c.slug)}`;
     return `
       <article class="card category-card">
         <a class="tile" href="${href}" style="text-decoration:none;color:inherit;">
@@ -82,7 +82,7 @@ function renderTop10(list){
       <div class="rating">${ratingStars(p.rating)}</div>
       <div class="actions">
         <button class="btn" data-compare-add="${p.id}">Add to compare</button>
-        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_id)}&focus=${encodeURIComponent(p.id)}">Details</a>
+        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_slug)}&focus=${encodeURIComponent(p.slug)}">Details</a>
       </div>
     </article>
   `).join('');

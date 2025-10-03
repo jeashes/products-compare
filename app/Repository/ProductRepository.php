@@ -11,11 +11,13 @@ class ProductRepository
     /**
      * @return Collection<int,Product>
      */
-    public function getByCategory(?int $categoryId, ?int $limit = 20): Collection
+    public function getByCategory(?string $categorySlug = null, ?int $limit): Collection
     {
-      return Product::query()
-            ->when($categoryId, function (Builder $query) use ($categoryId) {
-                $query->where('category_id', $categoryId);
+        return Product::query()
+            ->when($categorySlug, function (Builder $query) use ($categorySlug) {
+                $query->whereHas('category', function (Builder $c) use ($categorySlug) {
+                    $c->where('slug', $categorySlug);
+                });
             })
             ->when($limit, function (Builder $query) use ($limit) {
                 $query->limit($limit);
