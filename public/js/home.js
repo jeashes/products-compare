@@ -18,6 +18,8 @@ const CompareAPI = {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: Number(id) }),
+      keepalive: true,
+      credentials: 'same-origin',
     });
     if (!r.ok) {
       let msg = `HTTP ${r.status}`;
