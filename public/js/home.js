@@ -72,19 +72,6 @@ const CompareAPI = {
   }
 };
 
-let compareAddingInFlight = 0;
-
-const _origAdd = CompareAPI.add.bind(CompareAPI);
-
-CompareAPI.add = async (id) => {
-  compareAddingInFlight++;
-  try { 
-    return await _origAdd(id); 
-  } finally { 
-    compareAddingInFlight--; 
-  }
-};
-
 async function updateCompareBadgeFromAPI() {
   try {
     const list = await CompareAPI.list();
@@ -223,25 +210,6 @@ function renderTop10(list, chosen = new Set()) {
   });
 }
 
-function guardCompareLink() {
-  document.querySelectorAll('a[href="/compare"], a[href="compare"]').forEach(a => {
-    a.addEventListener('click', (e) => {
-      if (compareAddingInFlight > 0) {
-        e.preventDefault();
-        const href = a.getAttribute('href') || '/compare';
-        const tick = () => {
-          if (compareAddingInFlight === 0) {
-            location.href = href;
-          } else {
-            setTimeout(tick, 120);
-          }
-        };
-        tick();
-      }
-    });
-  });
-}
-
 function escapeHtml(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -287,8 +255,6 @@ async function boot() {
       }
     });
   }
-
-  guardCompareLink();
 }
 
 document.addEventListener('DOMContentLoaded', boot);
