@@ -22,6 +22,6 @@ Route::prefix('compare')
     ->group(function() {
         Route::get('/', [CompareController::class, 'index'])->name('get');
         Route::post('add', [CompareController::class, 'add'])->name('add');
-        Route::delete('{id}', [CompareController::class, 'remove'])->name('remove');
-        Route::delete('clear', [CompareController::class, 'clear'])->name('clear');
+        Route::delete('/remove/{id}', [CompareController::class, 'remove'])->name('remove');
+        Route::delete('clearAll', [CompareController::class, 'clear'])->name('clear');
     });

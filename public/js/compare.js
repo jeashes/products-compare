@@ -1,7 +1,7 @@
 const API = {
   get:   () => '/api/compare',
-  clear: () => '/api/compare/clear',
-  remove: (id) => `/api/compare/${encodeURIComponent(id)}`,
+  clear: () => '/api/compare/clearAll',
+  remove: (id) => `/api/compare/remove/${encodeURIComponent(id)}`,
 };
 
 function updateCompareBadge(count){
