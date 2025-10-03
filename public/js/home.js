@@ -1,50 +1,54 @@
 const API = {
   categories: (limit = 5) => `/api/categories?limit=${encodeURIComponent(limit)}`,
   top10: () => `/api/top10Products`,
+  compareList: () => `/api/compare`,
+  compareAdd: () => `/api/compare/add`,
 };
 
-const Compare = {
-  storageKey: 'compareIds',
-  get() {
-    try { return JSON.parse(localStorage.getItem(this.storageKey) || '[]'); }
-    catch { return []; }
+const CompareAPI = {
+  async list() {
+    const r = await fetch(API.compareList(), { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const json = await r.json();
+    return Array.isArray(json?.data) ? json.data : [];
   },
-  set(ids) {
-    localStorage.setItem(this.storageKey, JSON.stringify(ids));
-    updateCompareBadge();
+  async add(id) {
+    const r = await fetch(API.compareAdd(), {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: Number(id) }),
+    });
+    if (!r.ok) {
+      let msg = `HTTP ${r.status}`;
+      try { const body = await r.json(); if (body?.message) msg = body.message; } catch {}
+      throw new Error(msg);
+    }
+    const json = await r.json();
+    return Array.isArray(json?.data) ? json.data : [];
   },
-  add(id) {
-    id = Number(id);
-    const ids = this.get();
-    if (ids.includes(id)) return;
-    if (ids.length >= 3) { alert('Compare limit is 3 items.'); return; }
-    ids.push(id);
-    this.set(ids);
-    const btn = document.querySelector(`[data-compare-add="${id}"]`);
-    if (btn) { btn.disabled = true; btn.textContent = 'Added'; }
-  }
 };
 
-function updateCompareBadge() {
-  const el = document.getElementById('compare-count');
-  if (!el) return;
-  el.textContent = Compare.get().length;
+async function updateCompareBadgeFromAPI() {
+  try {
+    const list = await CompareAPI.list();
+    const el = document.getElementById('compare-count');
+    if (el) el.textContent = list.length;
+  } catch {}
 }
 
-async function safeGet(url){
-  const res = await fetch(url, { headers: { 'Accept':'application/json' }});
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+async function safeGet(url) {
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
-function ratingStars(val){
+function ratingStars(val) {
   if (val == null) return '—';
   const full = Math.round(Number(val) * 2) / 2;
-  const stars = '★★★★★☆☆☆☆☆'.slice(5 - Math.round(full), 10 - Math.round(full));
   return `${full.toFixed(1)} ★`;
 }
 
-function renderCategories(list){
+function renderCategories(list) {
   const grid = document.getElementById('categories-grid');
   if (!grid) return;
   if (!Array.isArray(list)) list = list?.data ?? [];
@@ -66,7 +70,7 @@ function renderCategories(list){
   }).join('');
 }
 
-function renderTop10(list){
+function renderTop10(list, chosen = new Set()) {
   const grid = document.getElementById('top10-grid');
   if (!grid) return;
   if (!Array.isArray(list)) list = list?.data ?? [];
@@ -81,52 +85,69 @@ function renderTop10(list){
       <div class="price">€${Number(p.price).toFixed(2)}</div>
       <div class="rating">${ratingStars(p.rating)}</div>
       <div class="actions">
-        <button class="btn" data-compare-add="${p.id}">Add to compare</button>
-        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_slug)}&focus=${encodeURIComponent(p.slug)}">Details</a>
+        <button class="btn" data-compare-add="${p.id}" ${chosen.has(p.id) ? 'disabled' : ''}>
+          ${chosen.has(p.id) ? 'Added' : 'Add to compare'}
+        </button>
+        <a class="btn btn-ghost" href="listing.html?category=${encodeURIComponent(p.category_id)}&focus=${encodeURIComponent(p.id)}">Details</a>
       </div>
     </article>
   `).join('');
 
   grid.querySelectorAll('[data-compare-add]').forEach(btn => {
     const id = Number(btn.getAttribute('data-compare-add'));
-    if (Compare.get().includes(id)) { btn.disabled = true; btn.textContent = 'Added'; }
-    btn.addEventListener('click', () => Compare.add(id));
+    btn.addEventListener('click', async () => {
+      try {
+        await CompareAPI.add(id);
+        btn.disabled = true; btn.textContent = 'Added';
+        updateCompareBadgeFromAPI();
+      } catch (e) {
+        alert(e.message || 'Failed to add to compare');
+      }
+    });
   });
 }
 
-function escapeHtml(s){
+function escapeHtml(s) {
   return String(s ?? '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-async function boot(){
+async function boot() {
   document.getElementById('year').textContent = new Date().getFullYear();
-  updateCompareBadge();
 
   try {
-    const [{ data: categoriesData = [] } = {}, { data: topData = [] } = {}] = await Promise.all([
+    const [
+      { data: categoriesData = [] } = {},
+      { data: topData = [] } = {},
+      selected = []
+    ] = await Promise.all([
       safeGet(API.categories(5)),
       safeGet(API.top10()),
+      CompareAPI.list(),
     ]);
+
+    const chosen = new Set(selected.map(p => p.id));
     renderCategories(categoriesData);
-    renderTop10(topData);
+    renderTop10(topData, chosen);
   } catch (e) {
     document.getElementById('categories-grid').innerHTML = '<p class="muted">Failed to load categories.</p>';
     document.getElementById('top10-grid').innerHTML = '<p class="muted">Failed to load Top 10.</p>';
   }
 
+  updateCompareBadgeFromAPI();
+
   const reloadBtn = document.getElementById('reload-categories');
-  if (reloadBtn){
-    reloadBtn.addEventListener('click', async ()=>{
+  if (reloadBtn) {
+    reloadBtn.addEventListener('click', async () => {
       document.getElementById('categories-grid').innerHTML = '<div class="skeleton category-skeleton"></div>'.repeat(5);
-      try{
+      try {
         const { data } = await safeGet(API.categories(5));
         renderCategories(data);
-      }catch{
+      } catch {
         document.getElementById('categories-grid').innerHTML = '<p class="muted">Failed to reload.</p>';
       }
     });

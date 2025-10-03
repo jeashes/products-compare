@@ -65,4 +65,15 @@ class ProductRepository
     {
         return Product::query()->findOrFail($id);
     }
+
+    /**
+     * @param array<int,int> $ids
+     * @return Collection<int,Product>
+     */
+    public function getByIds(array $ids): Collection
+    {
+        return Product::query()
+            ->whereIn('id', $ids)
+            ->get();
+    }
 }
