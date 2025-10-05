@@ -26,11 +26,11 @@ class CompareController extends Controller
 
     public function add(Request $request): AnonymousResourceCollection|JsonResponse
     {
-        $data = $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-        ]);
+        $productId = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+        ])['product_id'];
 
-        $result = $this->compareService->add($data['product_id']);
+        $result = $this->compareService->add($productId);
 
         if (!$result['success']) {
             return response()->json([

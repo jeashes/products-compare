@@ -10,16 +10,16 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductRepository
 {
-    public function getByCategory(?string $categorySlug = null, ?int $limit): LengthAwarePaginator
+    private const TOP_PRODUCTS_COUNT = 10;
+    
+    public function getByCategory(int $limit, ?string $categorySlug = null): LengthAwarePaginator
     {
         return Product::query()
             ->when($categorySlug, function (Builder $query) use ($categorySlug) {
-                $query->whereHas('category', function (Builder $c) use ($categorySlug) {
-                    $c->where('slug', $categorySlug);
-                });
+                $query->whereRelation('category', 'slug', $categorySlug);
             })
             ->paginate($limit)
-            ->withQueryString();;
+            ->withQueryString();
     }
 
     /**
@@ -49,12 +49,12 @@ class ProductRepository
     /**
      * @return EloquentCollection<int,Product>
      */
-    public function getTop(int $limit = 10): EloquentCollection
+    public function getTop(): EloquentCollection
     {
         return Product::query()
             ->whereNotNull('trending_order')
             ->orderBy('trending_order')
-            ->limit($limit)
+            ->limit(self::TOP_PRODUCTS_COUNT)
             ->get();
     }
 

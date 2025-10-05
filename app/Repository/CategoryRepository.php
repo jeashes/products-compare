@@ -11,7 +11,7 @@ class CategoryRepository
     /**
      * @return Collection<int,Category>
      */
-    public function get(?int $limit = null): Collection
+    public function get(?int $limit): Collection
     {
         return Category::query()
             ->when($limit, function (Builder $query) use ($limit) {
