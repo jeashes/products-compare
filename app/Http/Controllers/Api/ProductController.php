@@ -27,7 +27,10 @@ class ProductController extends Controller
             'limit' => 'nullable|integer|min:1|max:100',
         ])['limit'] ?? 15;
 
-        $products = $this->repository->getByCategory($categorySlug, $limit);
+        $products = $this->repository->getByCategory(
+            limit: $limit,
+            categorySlug: $categorySlug
+        );
 
         return ProductResource::collection($products);
     }

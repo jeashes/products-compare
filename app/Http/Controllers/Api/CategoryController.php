@@ -12,7 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CategoryController extends Controller
 {
-    public function __construct(private readonly CategoryRepository $repository) {}
+    public function __construct(
+        private readonly CategoryRepository $repository
+    ) { }
 
     public function index(Request $request): AnonymousResourceCollection
     {
